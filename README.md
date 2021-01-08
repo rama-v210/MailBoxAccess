@@ -14,3 +14,12 @@ The solution is architected by respecting the below important SW design guidelin
 1) Scalability : Can add new features easily, the impact on the existing features is minimal.
 2) Reusability : Both the BT Service and UI request handler implementations are hidden behind the interfaces, so they can be easily replacable if the remote BLE device implementation is changed OR the board itself is changed. Rest all other components can be reused.
 3)Testability : View updates, Event handling and Model are separated into different components, so unit testing of each module would be hassle-free.
+
+
+Files uploaded :
+1) Class_Diagram.docx  --> Class Diagram of the App Architecture.
+2) UseCase_Diagram.docx --> Use case Diagram of the App.
+3) Connect.txt --> Code for "Connect to a discovered Mailbox" method.
+4) Authentication.txt --> Code for "Authenticate user" method.
+5) LockUnlockCommand.txt --> Code for "Send unlock command" method.
+
