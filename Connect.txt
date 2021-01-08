@@ -1,5 +1,6 @@
 public boolean connectToMailBox(final String btAddressTobeConnected) {
-	if (mBluetoothManager == null) {
+        // This block should be moved to initialization method.
+	/*if (mBluetoothManager == null) {
 		mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
 		if (mBluetoothManager == null) {
 			Log.e(TAG, "Unable to initialize BluetoothManager.");
@@ -7,7 +8,7 @@ public boolean connectToMailBox(final String btAddressTobeConnected) {
 		}
 	}if(mBluetoothAdapter == null) {
 		mBluetoothAdapter = mBluetoothManager.getAdapter();
-	}
+	}*/
 
 	if (mBluetoothAdapter == null || btAddressTobeConnected == null) {
 		Log.w(TAG, "BluetoothAdapter not initialized or address is unspecified");
