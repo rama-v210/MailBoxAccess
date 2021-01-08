@@ -25,7 +25,7 @@
             Log.e(TAG, "No token Characterstic found!");
         }
         String outTokenString = Integer.toString(tokenID)+"|"+token;
-        status = tokenCharacterstic.setValue(outTokenString.getBytes(StandardCharsets.UTF_8));
-        mBluetoothGatt.writeCharacteristic(tokenCharacterstic);
+        tokenCharacterstic.setValue(outTokenString.getBytes(StandardCharsets.UTF_8));
+        bStatus = mBluetoothGatt.writeCharacteristic(tokenCharacterstic);
        return bStatus;
     }
