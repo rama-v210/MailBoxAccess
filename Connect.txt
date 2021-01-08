@@ -1,86 +1,74 @@
-package com.example.blemailbox.presenter;
+public boolean connectToMailBox(final String btAddressTobeConnected) {
+	if (mBluetoothManager == null) {
+		mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+		if (mBluetoothManager == null) {
+			Log.e(TAG, "Unable to initialize BluetoothManager.");
+			return false;
+		}
+	}if(mBluetoothAdapter == null) {
+		mBluetoothAdapter = mBluetoothManager.getAdapter();
+	}
 
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattDescriptor;
-import android.graphics.Bitmap;
-
-import java.util.UUID;
-
-public class BTConnection {
-
-    public boolean connectToMailBox(final String btAddressTobeConnected) {
-        if (mBluetoothManager == null) {
-            mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-            if (mBluetoothManager == null) {
-                Log.e(TAG, "Unable to initialize BluetoothManager.");
-                return false;
-            }
-        }if(mBluetoothAdapter == null) {
-            mBluetoothAdapter = mBluetoothManager.getAdapter();
-        }
-
-        if (mBluetoothAdapter == null || btAddressTobeConnected == null) {
-            Log.w(TAG, "BluetoothAdapter not initialized or address is unspecified");
-            return false;
-        }
-        try {
-            final BluetoothDevice btDevice = mBluetoothAdapter.getRemoteDevice(btAddressTobeConnected);
-        }catch(IllegalArgumentException e){
-            Log.d(TAG, "Invalid BT Address");
-        }
-        if (device == null) {
-            Log.w(TAG, "Device not found.  Unable to connect.");
-            return false;
-        }
-        mBluetoothGatt = btDevice.connectGatt(this, false, mBTGattCB);
-        Log.d(TAG, "Connection request is initiated.");
-        mBTDeviceAddress = btAddressTobeConnected;
-        mBTConnectionState = STATE_CONNECTING;
-        return true;
-    }
-
-    // Implement the necessary callbacks to meet the current requirement.
-    private final BluetoothGattCallback bleGattCallback = new BluetoothGattCallback() {
-
-        @Override
-        public void onConnectionStateChange(BluetoothGatt btGatt, int status, int newState) {
-            if (newState == BluetoothProfile.STATE_CONNECTED) {
-                mBTConnectionState = STATE_CONNECTED;
-                Log.i(TAG, "Successfully connected to GATT");
-                Log.i(TAG, "Initiate Services discovery-->" +
-                        mBluetoothGatt.discoverServices());
-            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                mBTConnectionState = STATE_DISCONNECTED;
-                Log.i(TAG, "GATT Disconnected");
-            }
-        }
-        @Override
-        public void onServicesDiscovered(BluetoothGatt btGatt, int status) {
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                Log.i(TAG, "Services discovery succeeded");
-                mBluetoothGatt.getServices();    // It is not needed here, it can be moved to a On Demand API. Make sure to call this API only after the
-                // services discovery is completed.
-            } else {
-                Log.w(TAG, "Services discovery Failed: " + status);
-            }
-        }
-        @Override
-        public void onCharacteristicRead(BluetoothGatt btGatt, BluetoothGattCharacteristic characteristic, int status) {
-            super.onCharacteristicRead(btGatt, characteristic, status);
-            Log.d("onCharacteristicRead---> status--->"+status);
-        }
-
-        @Override
-        public void onCharacteristicWrite(BluetoothGatt btGatt, BluetoothGattCharacteristic characteristic, int status) {
-            super.onCharacteristicWrite(btGatt, characteristic, status);
-            
-        }
-
-        @Override
-        public void onCharacteristicChanged(BluetoothGatt btGatt, BluetoothGattCharacteristic characteristic) {
-            super.onCharacteristicChanged(btGatt, characteristic);
-
-        }
-    };
+	if (mBluetoothAdapter == null || btAddressTobeConnected == null) {
+		Log.w(TAG, "BluetoothAdapter not initialized or address is unspecified");
+		return false;
+	}
+	try {
+		final BluetoothDevice btDevice = mBluetoothAdapter.getRemoteDevice(btAddressTobeConnected);
+	}catch(IllegalArgumentException e){
+		Log.d(TAG, "Invalid BT Address");
+	}
+	if (device == null) {
+		Log.w(TAG, "Device not found.  Unable to connect.");
+		return false;
+	}
+	mBluetoothGatt = btDevice.connectGatt(this, false, mBTGattCB);
+	Log.d(TAG, "Connection request is initiated.");
+	mBTDeviceAddress = btAddressTobeConnected;
+	mBTConnectionState = STATE_CONNECTING;
+	return true;
 }
+
+// Implement the necessary callbacks to meet the current requirement.
+private final BluetoothGattCallback bleGattCallback = new BluetoothGattCallback() {
+
+	@Override
+	public void onConnectionStateChange(BluetoothGatt btGatt, int status, int newState) {
+		if (newState == BluetoothProfile.STATE_CONNECTED) {
+			mBTConnectionState = STATE_CONNECTED;
+			Log.i(TAG, "Successfully connected to GATT");
+			Log.i(TAG, "Initiate Services discovery-->" +
+					mBluetoothGatt.discoverServices());
+		} else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+			mBTConnectionState = STATE_DISCONNECTED;
+			Log.i(TAG, "GATT Disconnected");
+		}
+	}
+	@Override
+	public void onServicesDiscovered(BluetoothGatt btGatt, int status) {
+		if (status == BluetoothGatt.GATT_SUCCESS) {
+			Log.i(TAG, "Services discovery succeeded");
+			mBluetoothGatt.getServices();    // It is not needed here, it can be moved to a On Demand API. Make sure to call this API only after the
+			// services discovery is completed.
+		} else {
+			Log.w(TAG, "Services discovery Failed: " + status);
+		}
+	}
+	@Override
+	public void onCharacteristicRead(BluetoothGatt btGatt, BluetoothGattCharacteristic characteristic, int status) {
+		super.onCharacteristicRead(btGatt, characteristic, status);
+		Log.d("onCharacteristicRead---> status--->"+status);
+	}
+
+	@Override
+	public void onCharacteristicWrite(BluetoothGatt btGatt, BluetoothGattCharacteristic characteristic, int status) {
+		super.onCharacteristicWrite(btGatt, characteristic, status);
+		
+	}
+
+	@Override
+	public void onCharacteristicChanged(BluetoothGatt btGatt, BluetoothGattCharacteristic characteristic) {
+		super.onCharacteristicChanged(btGatt, characteristic);
+
+	}
+};
