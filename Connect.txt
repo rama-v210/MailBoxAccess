@@ -9,15 +9,6 @@ import java.util.UUID;
 
 public class BTConnection {
 
-    /**
-     * Connects to the GATT server on the BLE device.
-     *
-     * @param address The device address of the remote device.
-     *
-     * @return Return true if the connection is initiated successfully. The connection result can be checked at the asyncronous callback
-     *         {@code BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)}
-     *         callback.
-     */
     public boolean connectToMailBox(final String btAddressTobeConnected) {
         if (mBluetoothManager == null) {
             mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
@@ -33,7 +24,11 @@ public class BTConnection {
             Log.w(TAG, "BluetoothAdapter not initialized or address is unspecified");
             return false;
         }
-        final BluetoothDevice btDevice = mBluetoothAdapter.getRemoteDevice(btAddressTobeConnected);
+        try {
+            final BluetoothDevice btDevice = mBluetoothAdapter.getRemoteDevice(btAddressTobeConnected);
+        }catch(IllegalArgumentException e){
+            Log.d(TAG, "Invalid BT Address");
+        }
         if (device == null) {
             Log.w(TAG, "Device not found.  Unable to connect.");
             return false;
