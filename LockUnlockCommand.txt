@@ -1,0 +1,45 @@
+/**
+ * Initiate Lock or Unlock command.
+ *
+ *
+ * @param lock if true - Lock command is initiated from the Client.
+ *                false - Unlock command is initaited from the Client.
+ *
+ * @return Return true if the write operation is initiated successfully.The result can be checked at the asyncronous callback
+ *
+ *         {@code BluetoothGattCallback#onCharacteristicWrite(android.bluetooth.BluetoothGatt, android.bluetooth.BluetoothGattCharacteristic, int)}
+ *
+ */
+public boolean LockUnlockMailBox(boolean lock) {
+	boolean status = false;
+	BluetoothGattService bleServiceMailbox = mBluetoothGatt.getService(Config.BLE_MAILBOX_LOCK_SERVICE);  // This service is defined by the BLE remote device.
+	if (bleServiceMailbox != null) {
+		Log.i(TAG, "Mailbox Lock Service is found");
+		BluetoothGattCharacteristic lockCharacteristic = bleServiceMailbox.getCharacteristic(Config.BLE_MAILBOX_LOCK_UNLOCK_CHARACTERSTIC); 
+		BluetoothGattCharacteristic characteristicTokenId = bleServiceMailbox.getCharacteristic(Config.TOKEN_ID_CHARACTERSTIC);
+		if (lockCharacteristic != null) {
+			Log.i(TAG, "Lock and Unlock Characteristic is found");
+			int currentLock = lockCharacteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8,0); // Get the current lock state.
+			int userReqLock = lock ? CONST_LOCK : CONST_UNLOCK;   // These are constants defined to indicate the lock states.
+			if(currentLock != userReqLock) {
+				mUserReqLock = lock;
+				lockCharacteristic.setValue(lock, BluetoothGattCharacteristic.FORMAT_UINT8, 0);
+				status = mBluetoothGatt.writeCharacteristic(lockCharacteristic);
+				if(!status){
+					Log.i(TAG, "Wrie operation initiation failed");
+					return status;
+				}
+				//Enable notifications for the changes in the Config.TOKEN_ID_CHARACTERSTIC Characterstic. Remote device generates a random TOKEN_ID
+				//and sends the same to the client for the authentication purpose.
+				mBluetoothGatt.setCharacteristicNotification(characteristicTokenId, true);
+				BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
+						UUID.fromString(Config.TOKEN_ID_CHARACTERISTIC_DESCRIPTOR));
+				descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+				mBluetoothGatt.writeDescriptor(descriptor);
+			}else{
+				Log.i(TAG,"No Action is needed, already the mailbox is in the same state");
+			}
+		}
+	}
+	return status;
+}
