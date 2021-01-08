@@ -1,0 +1,31 @@
+ /**
+     * Authenticate the Client Device by sending the tokenID received by the BLE remote device
+     * and the associated token received from the Cloud server.
+     *
+     * @param tokenID The tokenID sent by the remote device when client initiated Lock or Unlock command.
+     *
+     *@param token The token received from the cloud for the given tokenID
+     * @return The result can be checked at the asyncronous callback
+     *
+     *         {@code BluetoothGattCallback#onCharacteristicWrite(android.bluetooth.BluetoothGatt, android.bluetooth.BluetoothGattCharacteristic, int)}
+     *
+     */
+    public boolean authenticate(int tokenID, String token){
+        boolean bStatus = false;
+        // mBluetoothGatt is remote device's GATT server.
+        if (mBluetoothGatt == null) {
+            Log.e(TAG, "Connection lost to the MailBox");
+        }
+        BluetoothGattService bleService = mBluetoothGatt.getService(Bitmap.Config.BLE_MAILBOX_LOCK_SERVICE);
+        if (bleService == null) {
+            Log.e(TAG, "BLE_MAILBOX_LOCK_SERVICE Service not found!");
+        }
+        BluetoothGattCharacteristic tokenCharacterstic = bleService.getCharacteristic(Bitmap.Config.TOKEN_CHARACTERISTIC);
+        if (tokenCharacterstic == null) {
+            Log.e(TAG, "No token Characterstic found!");
+        }
+        String outTokenString = Integer.toString(tokenID)+"|"+token;
+        status = tokenCharacterstic.setValue(outTokenString.getBytes(StandardCharsets.UTF_8));
+        mBluetoothGatt.writeCharacteristic(tokenCharacterstic);
+       return bStatus;
+    }
