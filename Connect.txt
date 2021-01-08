@@ -56,20 +56,53 @@ private final BluetoothGattCallback bleGattCallback = new BluetoothGattCallback(
 		}
 	}
 	@Override
-	public void onCharacteristicRead(BluetoothGatt btGatt, BluetoothGattCharacteristic characteristic, int status) {
-		super.onCharacteristicRead(btGatt, characteristic, status);
-		Log.d("onCharacteristicRead---> status--->"+status);
-	}
+        public void onCharacteristicRead(BluetoothGatt btGatt, BluetoothGattCharacteristic characteristic, int status) {
+            super.onCharacteristicRead(btGatt, characteristic, status);
+            Log.d("onCharacteristicRead---> status--->"+status);
+        }
 
-	@Override
-	public void onCharacteristicWrite(BluetoothGatt btGatt, BluetoothGattCharacteristic characteristic, int status) {
-		super.onCharacteristicWrite(btGatt, characteristic, status);
-		
-	}
+        @Override
+        public void onCharacteristicWrite(BluetoothGatt btGatt, BluetoothGattCharacteristic characteristic, int status) {
+            super.onCharacteristicWrite(btGatt, characteristic, status);
+            if(status != BluetoothGatt.GATT_SUCCESS){
+                Log.d("onCharacteristicWrite", "Failed to write in previous request, Try again");
+                mBluetoothGatt.writeCharacteristic(characteristic);
+            }else {
+                Log.i(TAG,"characteristic written [" + status + "]");
+                if (characteristic.getUuid().equals(Config.BLE_MAILBOX_LOCK_UNLOCK_CHARACTERSTIC)) {
+                    mCurrentLockState = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8,0);
+                    switch(mCurrentLockState){
+                        case 0: {
+                            Log.i(TAG,"Mailbox is Unlocked");
+                            break;
+                        }
+                        case 1: {
+                            Log.i(TAG,"Mailbox is Locked");
+                            break;
+                        }
+                    }
+                    //Disable notifications for the changes in the Config.TOKEN_ID Characterstic as the current Lock/Unlock
+                    // request life cycle is ended.
+                    BluetoothGattCharacteristic characteristicTokenId = bleServiceMailbox.getCharacteristic(Bitmap.Config.TOKEN_ID_CHARACTERSTIC);
+                    mBluetoothGatt.setCharacteristicNotification(characteristicTokenId, false);
+                    BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
+                            UUID.fromString(Bitmap.Config.TOKEN_ID_CHARACTERISTIC_DESCRIPTOR));
+                    descriptor.setValue(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE);
+                }
+            }
+        }
 
-	@Override
-	public void onCharacteristicChanged(BluetoothGatt btGatt, BluetoothGattCharacteristic characteristic) {
-		super.onCharacteristicChanged(btGatt, characteristic);
-
-	}
+        @Override
+        public void onCharacteristicChanged(BluetoothGatt btGatt, BluetoothGattCharacteristic characteristic) {
+            super.onCharacteristicChanged(btGatt, characteristic);
+            if (characteristic.getUuid().equals(Bitmap.Config.TOKEN_ID_CHARACTERSTIC)) {
+                mTokenID = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT32, 0);
+                if (mTokenID > 0) {
+                    UUID tokenUUID = getHttpService().getToken(mTokenID); // Get the token associated to this tokenID from the Cloud. This is a HTTP Get request.
+                    authenticate(mTokenID, token.toString());
+                } else {
+                    lockUnlockMailBox(mUserReqLock);  // Didn't receive valid token, so resend the lock or unlock request.
+                }
+            }
+        }
 };
